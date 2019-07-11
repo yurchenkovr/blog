@@ -1,7 +1,7 @@
 package api
 
 import (
-	"blogSimple/api/handlers"
+	"blog/api/handlers"
 	"github.com/labstack/echo"
 )
 

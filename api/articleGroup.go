@@ -1,8 +1,8 @@
 package api
 
 import (
-	"github.com/labstack/echo"
 	"blog/api/handlers"
+	"github.com/labstack/echo"
 )
 
 func ArticleGroup(g *echo.Group) {
