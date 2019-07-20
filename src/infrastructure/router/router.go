@@ -1,13 +1,19 @@
 package router
 
 import (
+	"blog/src/repository"
+	"blog/src/repository/controllers"
+	"blog/src/repository/middlewares"
+	"blog/src/repository/postgres"
+	"blog/src/usecases"
 	"github.com/labstack/echo"
-	"blog/api"
-	"blog/api/middlewares"
 )
 
 func New() *echo.Echo {
 	e := echo.New()
+	dbHandler := postgres.New()
+
+	controllers.NewService(*e, usecases.NewArtService(postgres.NewArticleRepository(dbHandler)))
 
 	//adminGroup := e.Group("/admin")
 	cookieGroup := e.Group("/cookie")
@@ -21,12 +27,12 @@ func New() *echo.Echo {
 	middlewares.SetJWTMiddlewares(jwtGroup)
 
 	//set main routes
-	api.MainGroup(e)
+	repository.MainGroup(e)
 
 	//set group routes
-	api.ArticleGroup(articleGroup)
-	api.CookieGroup(cookieGroup)
-	api.JwtGroup(jwtGroup)
+	//repository.ArticleGroup(articleGroup)
+	repository.CookieGroup(cookieGroup)
+	repository.JwtGroup(jwtGroup)
 
 	return e
 }

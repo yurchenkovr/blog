@@ -1,17 +1,17 @@
-package postrges
+package postgres
 
 import (
-	"blog/api/models"
+	"blog/src/models"
 	"github.com/go-pg/pg"
 	"log"
 )
 
 type ArticleRepository interface {
-	Save(models.Article) error
-	GetByID(int) (models.Article, error)
-	Delete(int) error
+	SaveArticle(models.Article) error
+	GetByIDArticle(int) (models.Article, error)
+	DeleteArticle(int) error
 	GetAllArticles() ([]models.Article, error)
-	Update(int, UpdateArt) error
+	UpdateArticle(int, models.Article) error
 }
 
 func NewArticleRepository(db *pg.DB) ArticleRepository {
@@ -21,13 +21,8 @@ func NewArticleRepository(db *pg.DB) ArticleRepository {
 type articleRepository struct {
 	db *pg.DB
 }
-type UpdateArt struct {
-	Title   string
-	Author  string
-	Content string
-}
 
-func (a *articleRepository) Update(id int, art UpdateArt) error {
+func (a *articleRepository) UpdateArticle(id int, art models.Article) error {
 	var updatedArt models.Article
 	if _, err := a.db.Model(&updatedArt).Set("title = ?, author = ?, content = ?", art.Title, art.Author, art.Content).
 		Where("id = ?", id).Update(); err != nil {
@@ -36,7 +31,7 @@ func (a *articleRepository) Update(id int, art UpdateArt) error {
 	}
 	return nil
 }
-func (a *articleRepository) Save(article models.Article) error {
+func (a *articleRepository) SaveArticle(article models.Article) error {
 	if err := a.db.Insert(&article); err != nil {
 		log.Printf("Error while inserting new item into DB, Reason: %v\n", err)
 		return err
@@ -44,7 +39,7 @@ func (a *articleRepository) Save(article models.Article) error {
 	return nil
 }
 
-func (a *articleRepository) GetByID(id int) (models.Article, error) {
+func (a *articleRepository) GetByIDArticle(id int) (models.Article, error) {
 	var article models.Article
 	if err := a.db.Model(&article).Where("id = ?", id).First(); err != nil {
 		return models.Article{}, err
@@ -52,7 +47,7 @@ func (a *articleRepository) GetByID(id int) (models.Article, error) {
 	return article, nil
 }
 
-func (a *articleRepository) Delete(id int) error {
+func (a *articleRepository) DeleteArticle(id int) error {
 	var article models.Article
 	if _, err := a.db.Model(&article).Where("id = ?", id).Delete(); err != nil {
 		log.Printf("Error while deleting, Reason: %v\n", err)

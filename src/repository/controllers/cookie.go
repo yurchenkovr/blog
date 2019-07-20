@@ -1,9 +1,9 @@
-package handlers
+package controllers
 
 import (
-"net/http"
+	"net/http"
 
-"github.com/labstack/echo"
+	"github.com/labstack/echo"
 )
 
 func MainCookie(c echo.Context) error {
