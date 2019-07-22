@@ -68,7 +68,7 @@ func (s *serviceArt) UpdateArticle(c echo.Context) error {
 	}
 	err = json.Unmarshal(b, &article)
 	if err != nil {
-		log.Printf("Fail unmarshaling in addArticle: %s", err)
+		log.Printf("Fail unmarshaling in updateArticle: %s", err)
 		return c.String(http.StatusInternalServerError, "")
 	}
 	id, errID := strconv.Atoi(c.Param("id"))

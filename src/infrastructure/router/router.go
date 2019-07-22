@@ -14,6 +14,7 @@ func New() *echo.Echo {
 	dbHandler := postgres.New()
 
 	controllers.NewService(*e, usecases.NewArtService(postgres.NewArticleRepository(dbHandler)))
+	controllers.NewUserService(*e, usecases.NewUserService(postgres.NewUserRepository(dbHandler)))
 
 	//adminGroup := e.Group("/admin")
 	cookieGroup := e.Group("/cookie")
