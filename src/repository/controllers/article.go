@@ -5,6 +5,7 @@ import (
 	"blog/src/usecases"
 	"encoding/json"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -20,11 +21,16 @@ func NewService(e echo.Echo, artService usecases.ArticleService) {
 
 	g := e.Group("/articles")
 
+	auth := g.Group("/log", middleware.JWTWithConfig(middleware.JWTConfig{
+		SigningKey:  []byte("my_secret_key"),
+		TokenLookup: "cookie:token",
+	}))
+
 	g.GET("", articleHTTPsvc.GetArticles)
-	g.POST("", articleHTTPsvc.CreateArticle)
-	g.DELETE("/:id", articleHTTPsvc.DeleteArticle)
 	g.GET("/:id", articleHTTPsvc.GetArticleByID)
-	g.PATCH("/:id", articleHTTPsvc.UpdateArticle)
+	auth.POST("", articleHTTPsvc.CreateArticle)
+	auth.DELETE("/:id", articleHTTPsvc.DeleteArticle)
+	auth.PATCH("/:id", articleHTTPsvc.UpdateArticle)
 }
 
 func (s serviceArt) CreateArticle(c echo.Context) error {

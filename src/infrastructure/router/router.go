@@ -1,7 +1,6 @@
 package router
 
 import (
-	"blog/src/repository"
 	"blog/src/repository/controllers"
 	"blog/src/repository/middlewares"
 	"blog/src/repository/postgres"
@@ -15,25 +14,24 @@ func New() *echo.Echo {
 
 	controllers.NewService(*e, usecases.NewArtService(postgres.NewArticleRepository(dbHandler)))
 	controllers.NewUserService(*e, usecases.NewUserService(postgres.NewUserRepository(dbHandler)))
-
+	controllers.NewAuthService(*e, usecases.NewUserService(postgres.NewUserRepository(dbHandler)))
 	//adminGroup := e.Group("/admin")
-	cookieGroup := e.Group("/cookie")
-	jwtGroup := e.Group("/jwt")
+	//cookieGroup := e.Group("/cookie")
+	//jwtGroup := e.Group("/jwt")
 	articleGroup := e.Group("/article")
 
 	//set all middlewares
 	middlewares.SetMainMiddleares(e)
 	middlewares.SetArticleMiddlewares(articleGroup)
-	middlewares.SetCookieMiddlewares(cookieGroup)
-	middlewares.SetJWTMiddlewares(jwtGroup)
+	//middlewares.SetCookieMiddlewares(cookieGroup)
+	//middlewares.SetJWTMiddlewares(jwtGroup)
 
 	//set main routes
-	repository.MainGroup(e)
+	//repository.MainGroup(e)
 
 	//set group routes
 	//repository.ArticleGroup(articleGroup)
-	repository.CookieGroup(cookieGroup)
-	repository.JwtGroup(jwtGroup)
+	//	repository.JwtGroup(jwtGroup)
 
 	return e
 }

@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"blog/src/infrastructure/secure"
 	"blog/src/models"
 	"blog/src/repository/postgres"
 	"log"
@@ -29,26 +30,31 @@ type CreateReqUser struct {
 }
 
 func (s userService) SaveUser(req CreateReqUser) error {
+	hash := secure.HashAndSalt([]byte(req.Password))
+
 	user := models.User{
 		Base: models.Base{
 			CreatedAt: time.Now(),
 		},
 		Username: req.Username,
-		Password: req.Password,
+		Password: hash,
 		RoleID:   req.RoleID,
 	}
 	if err := s.userRep.SaveUser(user); err != nil {
 		log.Printf("error SU, Reason: %v\n", err)
+		return err
 	}
 	return nil
 }
 func (s userService) UpdateUser(id int, req models.User) error {
+	hash := secure.HashAndSalt([]byte(req.Password))
+
 	updUser := models.User{
 		Base: models.Base{
 			UpdatedAt: time.Now(),
 		},
 		Username: req.Username,
-		Password: req.Password,
+		Password: hash,
 	}
 	if err := s.userRep.UpdateUser(id, updUser); err != nil {
 		log.Printf("error UU, Reason: %v\n", err)
