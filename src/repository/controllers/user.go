@@ -4,7 +4,6 @@ import (
 	"blog/src/models"
 	"blog/src/usecases"
 	"encoding/json"
-	"fmt"
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/log"
 	"io/ioutil"
@@ -21,11 +20,21 @@ func NewUserService(e echo.Echo, userService usecases.UserService) {
 
 	g := e.Group("/users")
 
+	g.GET("/name/:username", userHTTPsvc.GetByUsername)
 	g.GET("", userHTTPsvc.GetAllUsers)
 	g.POST("", userHTTPsvc.CreateUser)
 	g.DELETE("/:id", userHTTPsvc.DeleteUser)
 	g.PATCH("/:id", userHTTPsvc.UpdateUser)
 	g.GET("/:id", userHTTPsvc.GetByIDUser)
+}
+func (s *serviceUser) GetByUsername(c echo.Context) error {
+	username := c.Param("username")
+
+	user, err := s.svc.GetByUsername(username)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+	return c.JSON(http.StatusOK, user)
 }
 func (s *serviceUser) DeleteUser(c echo.Context) error {
 	id, errID := strconv.Atoi(c.Param("id"))
@@ -74,7 +83,6 @@ func (s *serviceUser) UpdateUser(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	log.Printf("This is your user: %#v", user)
 	return c.JSON(http.StatusOK, "We got your updated user")
 }
 func (s *serviceUser) CreateUser(c echo.Context) error {
@@ -101,7 +109,6 @@ func (s *serviceUser) CreateUser(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	fmt.Printf("This is your user: %v", user)
 	return c.JSON(http.StatusOK, "we got your user!")
 }
 func (s *serviceUser) GetAllUsers(c echo.Context) error {

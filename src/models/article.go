@@ -1,8 +1,9 @@
 package models
 
 type Article struct {
-	ID      int    `json:"id"`
-	Title   string `json:"title"`
-	Author  string `json:"author"`
-	Content string `json:"content"`
+	Base
+	Title    string `json:"title"`
+	Username string `json:"username"`
+	Content  string `json:"content"`
+	UserID   int    `json:"user_id"`
 }

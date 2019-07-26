@@ -7,5 +7,4 @@ import (
 
 func MainGroup(e *echo.Echo) {
 	e.GET("/", controllers.Yallo)
-	e.GET("/login", controllers.Login)
 }

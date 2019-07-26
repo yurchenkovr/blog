@@ -13,6 +13,7 @@ type UserRepository interface {
 	DeleteUser(int) error
 	GetAllUsers() ([]models.User, error)
 	UpdateUser(int, models.User) error
+	GetByUsername(string) (*models.User, error)
 }
 
 func NewUserRepository(db *pg.DB) UserRepository {
@@ -48,7 +49,18 @@ func (a *userRepository) SaveUser(user models.User) error {
 	}
 	return nil
 }
-
+func (a *userRepository) GetByUsername(username string) (*models.User, error) {
+	var user = new(models.User)
+	sql := `SELECT "user".*, "role"."id" AS "role__id", "role"."access_level" AS "role__access_level", "role"."name" AS "role__name"
+	FROM "users" AS "user" JOIN "roles" AS "role" ON "role"."id" = "user"."role_id"
+	WHERE ("user"."username" = ?)`
+	_, err := a.db.QueryOne(user, sql, username)
+	if err != nil {
+		log.Printf("ERROR while GetByUsername, Reason: %v\n", err)
+		return nil, err
+	}
+	return user, nil
+}
 func (a *userRepository) GetByIDUser(id int) (*models.User, error) {
 	var user = new(models.User)
 	sql := `SELECT "user".*, "role"."id" AS "role__id", "role"."access_level" AS "role__access_level", "role"."name" AS "role__name"

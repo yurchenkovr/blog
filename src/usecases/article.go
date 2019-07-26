@@ -4,6 +4,7 @@ import (
 	"blog/src/models"
 	"blog/src/repository/postgres"
 	"log"
+	"time"
 )
 
 type ArticleService interface {
@@ -12,6 +13,7 @@ type ArticleService interface {
 	DeleteArticle(int) error
 	GetAllArticles() ([]models.Article, error)
 	UpdateArticle(int, UpdateReqArt) error
+	GetByUsername(string) (models.Article, error)
 }
 
 type articleService struct {
@@ -24,22 +26,32 @@ func NewArtService(artRep postgres.ArticleRepository) ArticleService {
 
 type UpdateReqArt struct {
 	Title   string `json:"title"`
-	Author  string `json:"author"`
 	Content string `json:"content"`
 }
 type CreateReqArt struct {
-	ID      int    `json:"id"`
-	Title   string `json:"title"`
-	Author  string `json:"author"`
-	Content string `json:"content"`
+	Title    string `json:"title"`
+	Username string `json:"username"`
+	Content  string `json:"content"`
+	UserID   int    `json:"user_id"`
 }
 
+func (s articleService) GetByUsername(username string) (models.Article, error) {
+	article, err := s.artRep.GetByUsername(username)
+	if err != nil {
+		log.Printf("error GU, Reason: %v\n", err)
+		return article, err
+	}
+	return article, nil
+}
 func (s articleService) SaveArticle(req CreateReqArt) error {
 	article := models.Article{
-		ID:      req.ID,
-		Title:   req.Title,
-		Author:  req.Title,
-		Content: req.Content,
+		Base: models.Base{
+			CreatedAt: time.Now(),
+		},
+		Title:    req.Title,
+		Username: req.Username,
+		Content:  req.Content,
+		UserID:   req.UserID,
 	}
 	if err := s.artRep.SaveArticle(article); err != nil {
 		log.Printf("error SA, Reason: %v\n", err)
@@ -49,8 +61,10 @@ func (s articleService) SaveArticle(req CreateReqArt) error {
 }
 func (s articleService) UpdateArticle(id int, req UpdateReqArt) error {
 	updArticle := models.Article{
+		Base: models.Base{
+			UpdatedAt: time.Now(),
+		},
 		Title:   req.Title,
-		Author:  req.Author,
 		Content: req.Content,
 	}
 	if err := s.artRep.UpdateArticle(id, updArticle); err != nil {

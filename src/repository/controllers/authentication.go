@@ -16,12 +16,12 @@ import (
 
 var jwtKey = []byte("my_secret_key")
 
-type authService struct {
+type service struct {
 	svc usecases.UserService
 }
 
 func NewAuthService(e echo.Echo, userServ usecases.UserService) {
-	authHTTPsvc := authService{svc: userServ}
+	authHTTPsvc := service{svc: userServ}
 
 	e.POST("/signin", authHTTPsvc.Signin)
 	e.GET("/welcome", authHTTPsvc.Welcome)
@@ -34,10 +34,11 @@ type Credentials struct {
 }
 type Claims struct {
 	Username string `json:"username"`
+	ID       int    `json:"id"`
 	jwt.StandardClaims
 }
 
-func (a *authService) Signin(c echo.Context) error {
+func (s *service) Signin(c echo.Context) error {
 	var creds Credentials
 
 	defer c.Request().Body.Close()
@@ -53,49 +54,42 @@ func (a *authService) Signin(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	users, err := a.svc.GetAllUsers()
+	user, err := s.svc.GetByUsername(creds.Username)
 	if err != nil {
 		log.Printf("error: %s", err)
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	for _, user := range users {
-		username := user.Username
-
-		if username == creds.Username {
-			hashedPwd := user.Password
-
-			truePass := secure.ComparePasswords(hashedPwd, []byte(creds.Password))
-			if !truePass {
-				return c.JSON(http.StatusUnauthorized, err)
-			}
-
-			expirationTime := time.Now().Add(5 * time.Minute)
-
-			claims := &Claims{
-				Username: creds.Username,
-				StandardClaims: jwt.StandardClaims{
-					ExpiresAt: expirationTime.Unix(),
-				},
-			}
-
-			token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-			tokenString, err := token.SignedString(jwtKey)
-			if err != nil {
-				return c.JSON(http.StatusInternalServerError, err)
-			}
-
-			cookie := new(http.Cookie)
-			cookie.Name = "token"
-			cookie.Value = tokenString
-			cookie.Expires = expirationTime
-			c.SetCookie(cookie)
-		}
+	if truePass := secure.ComparePasswords(user.Password, []byte(creds.Password)); !truePass {
+		return c.JSON(http.StatusUnauthorized, err)
 	}
+
+	expirationTime := time.Now().Add(5 * time.Minute)
+
+	claims := &Claims{
+		Username: creds.Username,
+		ID:       user.ID,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	cookie := new(http.Cookie)
+	cookie.Name = "token"
+	cookie.Value = tokenString
+	cookie.Expires = expirationTime
+	c.SetCookie(cookie)
+
 	return c.JSON(http.StatusOK, "Sign in successful")
 }
 
-func (a *authService) Welcome(c echo.Context) error {
+func (a *service) Welcome(c echo.Context) error {
 	cookie, err := c.Cookie("token")
 	if err != nil {
 		if err == http.ErrNoCookie {
@@ -107,7 +101,6 @@ func (a *authService) Welcome(c echo.Context) error {
 
 	tokenString := cookie.Value
 	claims := &Claims{}
-
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(tkn *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
@@ -120,9 +113,9 @@ func (a *authService) Welcome(c echo.Context) error {
 	if !token.Valid {
 		return c.JSON(http.StatusUnauthorized, err)
 	}
-	return c.String(http.StatusOK, fmt.Sprintf("Welcome %s", claims.Username))
+	return c.String(http.StatusOK, fmt.Sprintf("Welcome %s, your ID: %d", claims.Username, claims.ID))
 }
-func (a *authService) Refresh(c echo.Context) error {
+func (a *service) Refresh(c echo.Context) error {
 	cookie, err := c.Cookie("token")
 	if err != nil {
 		if err != http.ErrNoCookie {

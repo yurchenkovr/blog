@@ -14,6 +14,7 @@ type UserService interface {
 	DeleteUser(int) error
 	GetAllUsers() ([]models.User, error)
 	UpdateUser(int, models.User) error
+	GetByUsername(string) (*models.User, error)
 }
 type userService struct {
 	userRep postgres.UserRepository
@@ -81,6 +82,14 @@ func (s userService) GetByIDUser(id int) (*models.User, error) {
 	user, err := s.userRep.GetByIDUser(id)
 	if err != nil {
 		log.Printf("error GIU, Reason: %v\n", err)
+		return user, err
+	}
+	return user, nil
+}
+func (s userService) GetByUsername(username string) (*models.User, error) {
+	user, err := s.userRep.GetByUsername(username)
+	if err != nil {
+		log.Printf("error GBU, Reason: %v\n", err)
 		return user, err
 	}
 	return user, nil
