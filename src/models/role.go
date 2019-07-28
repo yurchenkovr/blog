@@ -3,8 +3,8 @@ package models
 type AccessRole int
 
 const (
-	AdminRole = 200
-	UserRole  = 100
+	AdminRole AccessRole = 200
+	UserRole  AccessRole = 100
 )
 
 type Role struct {

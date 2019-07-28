@@ -5,7 +5,6 @@ import (
 	"blog/src/usecases"
 	"encoding/json"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"io/ioutil"
@@ -21,19 +20,23 @@ type serviceArt struct {
 func NewService(e echo.Echo, artService usecases.ArticleService) {
 	articleHTTPsvc := serviceArt{svc: artService}
 
-	g := e.Group("/articles")
+	g := e.Group("/a")
 
 	auth := g.Group("/log", middleware.JWTWithConfig(middleware.JWTConfig{
 		SigningKey:  []byte("my_secret_key"),
 		TokenLookup: "cookie:token",
 	}))
+	adm := auth.Group("/admin")
 
-	g.GET("", articleHTTPsvc.GetArticles)
-	g.GET("/:id", articleHTTPsvc.GetArticleByID)
-	g.GET("/name/:username", articleHTTPsvc.GetByUsername)
-	auth.POST("", articleHTTPsvc.CreateArticle)
-	auth.DELETE("/:id", articleHTTPsvc.DeleteArt)
-	auth.PATCH("/:id", articleHTTPsvc.UpdateArt)
+	g.GET("", articleHTTPsvc.GetArticles)                  // Any user can see articles
+	g.GET("/:id", articleHTTPsvc.GetArticleByID)           //			-||-
+	g.GET("/name/:username", articleHTTPsvc.GetByUsername) //			-||-
+
+	auth.POST("", articleHTTPsvc.CreateArticle)   //Auth user can Create only his article
+	auth.DELETE("/:id", articleHTTPsvc.DeleteArt) // 			-||- Delete -||-
+	auth.PATCH("/:id", articleHTTPsvc.UpdateArt)  // 			-||= Update -||-
+
+	adm.DELETE("/:id", articleHTTPsvc.DeleteAnyArticle) // Admin can Delete any article
 }
 func (s serviceArt) GetByUsername(c echo.Context) error {
 	username := c.Param("username")
@@ -62,6 +65,9 @@ func (s serviceArt) CreateArticle(c echo.Context) error {
 	claims, err := getClaims(c)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
+	}
+	if claims.Blocked == true {
+		return c.String(http.StatusBadRequest, "Your profile was blocked.")
 	}
 	req := usecases.CreateReqArt{
 		Title:    article.Title,
@@ -105,10 +111,7 @@ func (s *serviceArt) UpdateArticle(c echo.Context) error {
 	return c.String(http.StatusOK, "We got your updated article")
 }
 func (s *serviceArt) GetArticleByID(c echo.Context) error {
-	id, errID := strconv.Atoi(c.Param("id"))
-	if errID != nil {
-		return errID
-	}
+	id := getParamID(c)
 	article, err := s.svc.GetByIDArticle(id)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
@@ -116,10 +119,7 @@ func (s *serviceArt) GetArticleByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, article)
 }
 func (s *serviceArt) DeleteArticle(c echo.Context) error {
-	id, errID := strconv.Atoi(c.Param("id"))
-	if errID != nil {
-		return errID
-	}
+	id := getParamID(c)
 	err := s.svc.DeleteArticle(id)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
@@ -134,29 +134,8 @@ func (s *serviceArt) GetArticles(c echo.Context) error {
 	return c.JSON(http.StatusOK, articles)
 }
 
-func getClaims(c echo.Context) (*Claims, error) {
-	cookie, err := c.Cookie("token")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			log.Printf("cookie are absent ")
-			return nil, c.JSON(http.StatusUnauthorized, err)
-		}
-		fmt.Println("something bad")
-		return nil, c.JSON(http.StatusBadRequest, err)
-	}
-	tokenString := cookie.Value
-	claims := &Claims{}
-	_, err = jwt.ParseWithClaims(tokenString, claims, func(tkn *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
-	})
-	return claims, nil
-}
 func (s *serviceArt) isMine(c echo.Context) bool {
-	id, errID := strconv.Atoi(c.Param("id"))
-	if errID != nil {
-		return false
-	}
-
+	id := getParamID(c)
 	claims, errClaims := getClaims(c)
 	if errClaims != nil {
 		return false
@@ -191,4 +170,17 @@ func (s *serviceArt) DeleteArt(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 	return c.String(http.StatusOK, "")
+}
+func (s *serviceArt) DeleteAnyArticle(c echo.Context) error {
+	claims, err := getClaims(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	if isAdmin(c, claims.ID) == true {
+		if err := s.DeleteArticle(c); err != nil {
+			return c.JSON(http.StatusBadRequest, err)
+		}
+		return c.String(http.StatusOK, fmt.Sprintf("Deleted successfully\nRole: %s", claims.Role))
+	}
+	return c.String(http.StatusOK, "Deleted successfully")
 }

@@ -13,7 +13,7 @@ type ArticleService interface {
 	DeleteArticle(int) error
 	GetAllArticles() ([]models.Article, error)
 	UpdateArticle(int, UpdateReqArt) error
-	GetByUsername(string) (models.Article, error)
+	GetByUsername(string) ([]models.Article, error)
 }
 
 type articleService struct {
@@ -35,7 +35,7 @@ type CreateReqArt struct {
 	UserID   int    `json:"user_id"`
 }
 
-func (s articleService) GetByUsername(username string) (models.Article, error) {
+func (s articleService) GetByUsername(username string) ([]models.Article, error) {
 	article, err := s.artRep.GetByUsername(username)
 	if err != nil {
 		log.Printf("error GU, Reason: %v\n", err)

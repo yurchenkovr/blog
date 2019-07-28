@@ -4,7 +4,6 @@ import (
 	"blog/src/models"
 	"github.com/go-pg/pg"
 	"log"
-	"time"
 )
 
 type UserRepository interface {
@@ -14,6 +13,7 @@ type UserRepository interface {
 	GetAllUsers() ([]models.User, error)
 	UpdateUser(int, models.User) error
 	GetByUsername(string) (*models.User, error)
+	UpdateStatus(int, bool) error
 }
 
 func NewUserRepository(db *pg.DB) UserRepository {
@@ -23,14 +23,6 @@ func NewUserRepository(db *pg.DB) UserRepository {
 type userRepository struct {
 	db *pg.DB
 }
-type BaseReq struct {
-	UpdatedAt time.Time `json:"updated_at"`
-}
-type UpdateUser struct {
-	BaseReq
-	Username string
-	Password string
-}
 
 func (a *userRepository) UpdateUser(id int, user models.User) error {
 	var updatedUser models.User
@@ -38,6 +30,16 @@ func (a *userRepository) UpdateUser(id int, user models.User) error {
 	if _, err := a.db.Model(&updatedUser).Set("username = ?, password = ?, updated_at = ?", user.Username, user.Password, user.UpdatedAt).
 		Where("id = ?", id).Update(); err != nil {
 		log.Printf("Error while updating User, Reason: %v\n", err)
+		return err
+	}
+	return nil
+}
+func (a *userRepository) UpdateStatus(id int, status bool) error {
+	var updatedUser models.User
+
+	if _, err := a.db.Model(&updatedUser).Set("blocked = ?", status).
+		Where("id = ?", id).Update(); err != nil {
+		log.Printf("Error while updating User Status, Reason: %v\n", err)
 		return err
 	}
 	return nil

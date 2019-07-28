@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"blog/src/infrastructure/secure"
+	"blog/src/models"
 	"blog/src/usecases"
 	"encoding/json"
 	"fmt"
@@ -33,8 +34,10 @@ type Credentials struct {
 	Username string `json:"username"`
 }
 type Claims struct {
-	Username string `json:"username"`
-	ID       int    `json:"id"`
+	Username string            `json:"username"`
+	ID       int               `json:"id"`
+	Role     models.AccessRole `json:"role"`
+	Blocked  bool              `json:"blocked"`
 	jwt.StandardClaims
 }
 
@@ -69,6 +72,8 @@ func (s *service) Signin(c echo.Context) error {
 	claims := &Claims{
 		Username: creds.Username,
 		ID:       user.ID,
+		Role:     user.RoleID,
+		Blocked:  user.Blocked,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -113,7 +118,7 @@ func (a *service) Welcome(c echo.Context) error {
 	if !token.Valid {
 		return c.JSON(http.StatusUnauthorized, err)
 	}
-	return c.String(http.StatusOK, fmt.Sprintf("Welcome %s, your ID: %d", claims.Username, claims.ID))
+	return c.String(http.StatusOK, fmt.Sprintf("Welcome %s\nID: %d\nRole: %d\nExpires at: %v\nBlocked: %t\n", claims.Username, claims.ID, claims.Role, claims.ExpiresAt, claims.Blocked))
 }
 func (a *service) Refresh(c echo.Context) error {
 	cookie, err := c.Cookie("token")
@@ -160,4 +165,22 @@ func (a *service) Refresh(c echo.Context) error {
 	c.SetCookie(newCookie)
 
 	return c.String(http.StatusOK, "token was refreshed")
+}
+
+func getClaims(c echo.Context) (*Claims, error) {
+	cookie, err := c.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			log.Printf("cookie are absent ")
+			return nil, c.JSON(http.StatusUnauthorized, err)
+		}
+		fmt.Println("something bad")
+		return nil, c.JSON(http.StatusBadRequest, err)
+	}
+	tokenString := cookie.Value
+	claims := &Claims{}
+	_, err = jwt.ParseWithClaims(tokenString, claims, func(tkn *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+	return claims, nil
 }

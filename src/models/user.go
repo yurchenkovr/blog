@@ -6,5 +6,6 @@ type User struct {
 	Password string `json:"password"`
 	Role     *Role  `json:"role,omitempty"`
 
-	RoleID AccessRole `json:"role_id"`
+	RoleID  AccessRole `json:"role_id"`
+	Blocked bool       `json:"blocked"`
 }

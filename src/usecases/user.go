@@ -15,6 +15,10 @@ type UserService interface {
 	GetAllUsers() ([]models.User, error)
 	UpdateUser(int, models.User) error
 	GetByUsername(string) (*models.User, error)
+	BlockUser(int) error
+	UnblockUser(int) error
+	//IsAdmin(int) bool
+	//DeleteAnyUser(int, int) error
 }
 type userService struct {
 	userRep postgres.UserRepository
@@ -40,6 +44,7 @@ func (s userService) SaveUser(req CreateReqUser) error {
 		Username: req.Username,
 		Password: hash,
 		RoleID:   req.RoleID,
+		Blocked:  false,
 	}
 	if err := s.userRep.SaveUser(user); err != nil {
 		log.Printf("error SU, Reason: %v\n", err)
@@ -94,3 +99,40 @@ func (s userService) GetByUsername(username string) (*models.User, error) {
 	}
 	return user, nil
 }
+func (s userService) BlockUser(id int) error {
+	if err := s.userRep.UpdateStatus(id, true); err != nil {
+		log.Printf("Error Block: %v\n", err)
+		return err
+	}
+	return nil
+}
+func (s userService) UnblockUser(id int) error {
+	if err := s.userRep.UpdateStatus(id, false); err != nil {
+		log.Printf("Error Block: %v\n", err)
+		return err
+	}
+	return nil
+}
+
+/*
+func (s userService) DeleteAnyUser(clamsID, id int) error {
+	if s.IsAdmin(clamsID) == true {
+		if err := s.DeleteUser(id); err != nil {
+			return err
+		}
+		return nil
+	}
+	return errors.New("you`re not an Admin")
+}*/
+/*func (s userService) IsAdmin(id int) bool {
+	user, err := s.GetByIDUser(id)
+	if err != nil {
+		fmt.Println("something go bad..when checking IsAdmin")
+		return false
+	}
+	if user.Role.AccessLevel == models.AdminRole {
+		return true
+	}
+	return false
+}
+*/

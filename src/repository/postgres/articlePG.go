@@ -12,7 +12,7 @@ type ArticleRepository interface {
 	DeleteArticle(int) error
 	GetAllArticles() ([]models.Article, error)
 	UpdateArticle(int, models.Article) error
-	GetByUsername(string) (models.Article, error)
+	GetByUsername(string) ([]models.Article, error)
 }
 
 func NewArticleRepository(db *pg.DB) ArticleRepository {
@@ -23,10 +23,10 @@ type articleRepository struct {
 	db *pg.DB
 }
 
-func (a *articleRepository) GetByUsername(username string) (models.Article, error) {
-	var article models.Article
+func (a *articleRepository) GetByUsername(username string) ([]models.Article, error) {
+	var article []models.Article
 	if err := a.db.Model(&article).Where("username = ?", username).Select(); err != nil {
-		return models.Article{}, err
+		return []models.Article{}, err
 	}
 	return article, nil
 }
