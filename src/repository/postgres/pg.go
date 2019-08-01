@@ -28,6 +28,7 @@ func CreateTableArticle(db *pg.DB) {
 	opts := &orm.CreateTableOptions{
 		IfNotExists: true,
 	}
+
 	err := db.CreateTable(&models.Article{}, opts)
 	if err != nil {
 		log.Printf("Error while creating table Article, Reason: %v\n", err)

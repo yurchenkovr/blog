@@ -7,11 +7,11 @@ import (
 )
 
 type ArticleRepository interface {
-	SaveArticle(models.Article) error
-	GetByIDArticle(int) (models.Article, error)
-	DeleteArticle(int) error
-	GetAllArticles() ([]models.Article, error)
-	UpdateArticle(int, models.Article) error
+	Create(models.Article) error
+	View(int) (models.Article, error)
+	Delete(int) error
+	List() ([]models.Article, error)
+	Update(int, models.Article) error
 	GetByUsername(string) ([]models.Article, error)
 }
 
@@ -25,13 +25,16 @@ type articleRepository struct {
 
 func (a *articleRepository) GetByUsername(username string) ([]models.Article, error) {
 	var article []models.Article
+
 	if err := a.db.Model(&article).Where("username = ?", username).Select(); err != nil {
 		return []models.Article{}, err
 	}
 	return article, nil
 }
-func (a *articleRepository) UpdateArticle(id int, art models.Article) error {
+
+func (a *articleRepository) Update(id int, art models.Article) error {
 	var updatedArt models.Article
+
 	if _, err := a.db.Model(&updatedArt).Set("title = ?,content = ?, updated_at = ?", art.Title, art.Content, art.UpdatedAt).
 		Where("id = ?", id).Update(); err != nil {
 		log.Printf("Error while updating, Reason: %v\n", err)
@@ -39,30 +42,37 @@ func (a *articleRepository) UpdateArticle(id int, art models.Article) error {
 	}
 	return nil
 }
-func (a *articleRepository) SaveArticle(article models.Article) error {
+
+func (a *articleRepository) Create(article models.Article) error {
 	if err := a.db.Insert(&article); err != nil {
 		log.Printf("Error while inserting new item into DB, Reason: %v\n", err)
 		return err
 	}
 	return nil
 }
-func (a *articleRepository) GetByIDArticle(id int) (models.Article, error) {
+
+func (a *articleRepository) View(id int) (models.Article, error) {
 	var article models.Article
+
 	if err := a.db.Model(&article).Where("id = ?", id).First(); err != nil {
 		return models.Article{}, err
 	}
 	return article, nil
 }
-func (a *articleRepository) DeleteArticle(id int) error {
+
+func (a *articleRepository) Delete(id int) error {
 	var article models.Article
+
 	if _, err := a.db.Model(&article).Where("id = ?", id).Delete(); err != nil {
 		log.Printf("Error while deleting, Reason: %v\n", err)
 		return err
 	}
 	return nil
 }
-func (a *articleRepository) GetAllArticles() ([]models.Article, error) {
+
+func (a *articleRepository) List() ([]models.Article, error) {
 	var article []models.Article
+
 	if err := a.db.Model(&article).Select(); err != nil {
 		log.Printf("error while trying to Select All Articles, Reason: %v\n", err)
 		return nil, err

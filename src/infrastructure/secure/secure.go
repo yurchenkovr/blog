@@ -12,6 +12,7 @@ func HashAndSalt(pwd []byte) string {
 	}
 	return string(hash)
 }
+
 func ComparePasswords(hashedPwd string, plainPwd []byte) bool {
 	byteHash := []byte(hashedPwd)
 

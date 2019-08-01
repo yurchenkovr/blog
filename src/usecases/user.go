@@ -4,28 +4,37 @@ import (
 	"blog/src/infrastructure/secure"
 	"blog/src/models"
 	"blog/src/repository/postgres"
+	"blog/src/usecases/rbac"
+	"errors"
+	"github.com/labstack/echo"
 	"log"
 	"time"
 )
 
 type UserService interface {
-	SaveUser(CreateReqUser) error
-	GetByIDUser(int) (*models.User, error)
-	DeleteUser(int) error
-	GetAllUsers() ([]models.User, error)
-	UpdateUser(int, models.User) error
+	Create(CreateReqUser) error
+	View(int) (*models.User, error)
+	Delete(echo.Context, int) error
+	List() ([]models.User, error)
+	Update(echo.Context, int, models.User) error
 	GetByUsername(string) (*models.User, error)
-	BlockUser(int) error
-	UnblockUser(int) error
-	//IsAdmin(int) bool
-	//DeleteAnyUser(int, int) error
-}
-type userService struct {
-	userRep postgres.UserRepository
+	Block(echo.Context, int) error
+	Unblock(echo.Context, int) error
+	Login(username, password string) (string, error)
 }
 
-func NewUserService(userRep postgres.UserRepository) UserService {
-	return &userService{userRep: userRep}
+type TokenGenerator interface {
+	GenerateToken(models.User) (string, error)
+}
+
+type userService struct {
+	userRep        postgres.UserRepository
+	tokenGenerator TokenGenerator
+	rbac           rbac.RBAC
+}
+
+func NewUserService(userRep postgres.UserRepository, generator TokenGenerator, rbac rbac.RBAC) UserService {
+	return &userService{userRep: userRep, tokenGenerator: generator, rbac: rbac}
 }
 
 type CreateReqUser struct {
@@ -34,7 +43,21 @@ type CreateReqUser struct {
 	RoleID   models.AccessRole `json:"role_id"`
 }
 
-func (s userService) SaveUser(req CreateReqUser) error {
+func (s userService) Login(username, password string) (string, error) {
+	user, err := s.GetByUsername(username)
+	if err != nil {
+		log.Printf("error: %s", err)
+		return "", err
+	}
+
+	if !secure.ComparePasswords(user.Password, []byte(password)) {
+		return "", errors.New("password or login is incorrect")
+	}
+
+	return s.tokenGenerator.GenerateToken(*user)
+}
+
+func (s userService) Create(req CreateReqUser) error {
 	hash := secure.HashAndSalt([]byte(req.Password))
 
 	user := models.User{
@@ -46,13 +69,18 @@ func (s userService) SaveUser(req CreateReqUser) error {
 		RoleID:   req.RoleID,
 		Blocked:  false,
 	}
-	if err := s.userRep.SaveUser(user); err != nil {
+	if err := s.userRep.Create(user); err != nil {
 		log.Printf("error SU, Reason: %v\n", err)
 		return err
 	}
 	return nil
 }
-func (s userService) UpdateUser(id int, req models.User) error {
+
+func (s userService) Update(c echo.Context, id int, req models.User) error {
+	if !s.rbac.EnforceUser(c, id) {
+		return errors.New("It`s not your user or you`re not an admin\n")
+	}
+
 	hash := secure.HashAndSalt([]byte(req.Password))
 
 	updUser := models.User{
@@ -62,33 +90,44 @@ func (s userService) UpdateUser(id int, req models.User) error {
 		Username: req.Username,
 		Password: hash,
 	}
-	if err := s.userRep.UpdateUser(id, updUser); err != nil {
+	if err := s.userRep.Update(id, updUser); err != nil {
 		log.Printf("error UU, Reason: %v\n", err)
 		return err
 	}
+
 	return nil
 }
-func (s userService) GetAllUsers() ([]models.User, error) {
-	users, err := s.userRep.GetAllUsers()
+
+func (s userService) List() ([]models.User, error) {
+	users, err := s.userRep.List()
 	if err != nil {
 		log.Printf("error GU, Reason: %v\n", err)
 		return nil, err
 	}
+
 	return users, nil
 }
-func (s userService) DeleteUser(id int) error {
-	if err := s.userRep.DeleteUser(id); err != nil {
+
+func (s userService) Delete(c echo.Context, id int) error {
+	if !s.rbac.EnforceUser(c, id) {
+		return errors.New("It`s not your user or you`re not an admin\n")
+	}
+
+	if err := s.userRep.Delete(id); err != nil {
 		log.Printf("error DU, Reason: %v\n", err)
 		return err
 	}
+
 	return nil
 }
-func (s userService) GetByIDUser(id int) (*models.User, error) {
-	user, err := s.userRep.GetByIDUser(id)
+
+func (s userService) View(id int) (*models.User, error) {
+	user, err := s.userRep.View(id)
 	if err != nil {
 		log.Printf("error GIU, Reason: %v\n", err)
 		return user, err
 	}
+
 	return user, nil
 }
 func (s userService) GetByUsername(username string) (*models.User, error) {
@@ -99,40 +138,29 @@ func (s userService) GetByUsername(username string) (*models.User, error) {
 	}
 	return user, nil
 }
-func (s userService) BlockUser(id int) error {
+
+func (s userService) Block(c echo.Context, id int) error {
+	if !s.rbac.IsAdmin(c) {
+		return errors.New("You`re not an admin!\n")
+	}
+
 	if err := s.userRep.UpdateStatus(id, true); err != nil {
 		log.Printf("Error Block: %v\n", err)
 		return err
 	}
+
 	return nil
 }
-func (s userService) UnblockUser(id int) error {
+
+func (s userService) Unblock(c echo.Context, id int) error {
+	if !s.rbac.IsAdmin(c) {
+		return errors.New("You`re not an admin!\n")
+	}
+
 	if err := s.userRep.UpdateStatus(id, false); err != nil {
 		log.Printf("Error Block: %v\n", err)
 		return err
 	}
+
 	return nil
 }
-
-/*
-func (s userService) DeleteAnyUser(clamsID, id int) error {
-	if s.IsAdmin(clamsID) == true {
-		if err := s.DeleteUser(id); err != nil {
-			return err
-		}
-		return nil
-	}
-	return errors.New("you`re not an Admin")
-}*/
-/*func (s userService) IsAdmin(id int) bool {
-	user, err := s.GetByIDUser(id)
-	if err != nil {
-		fmt.Println("something go bad..when checking IsAdmin")
-		return false
-	}
-	if user.Role.AccessLevel == models.AdminRole {
-		return true
-	}
-	return false
-}
-*/
