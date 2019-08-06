@@ -20,17 +20,18 @@ func New() *pg.DB {
 	}
 	fmt.Printf("Connection to database successful.\n")
 
-	CreateTableArticle(db)
+	CreateTables(db)
 
 	return db
 }
-func CreateTableArticle(db *pg.DB) {
-	opts := &orm.CreateTableOptions{
-		IfNotExists: true,
-	}
 
-	err := db.CreateTable(&models.Article{}, opts)
-	if err != nil {
-		log.Printf("Error while creating table Article, Reason: %v\n", err)
+func CreateTables(db *pg.DB) {
+	for _, model := range []interface{}{&models.User{}, &models.Article{}, &models.Role{}} {
+		err := db.CreateTable(model, &orm.CreateTableOptions{
+			IfNotExists: true,
+		})
+		if err != nil {
+			log.Printf("Error while creating table: %v\nReason: %v\n", model, err)
+		}
 	}
 }
