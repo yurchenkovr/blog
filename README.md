@@ -5,6 +5,7 @@ The following dependencies are used in this project:
 - go-pg -  PostgreSQL ORM
 - jwt-go - JWT Authentication
 - bcrypt -  Password hashing
+- Yaml - Unmarshalling YAML config file
 
 The application runs as an HTTP server at port 8080. It provides the following RESTful endpoints:
 
