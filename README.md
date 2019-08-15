@@ -17,7 +17,7 @@ The application runs as an HTTP server at port 8080. It provides the following R
     - DELETE: /users/:id               - deletes a user(after sign in)
     - PATCH:  /users/:id               - updates a user(after sign in)
     - PATCH:  /users/bl/:id            - blocks the user to add posts
-    - PATCH:  /users/ubl/:id           - unblocks the user to add posts  
+    - PATCH:  /users/unb/:id           - unblocks the user to add posts  
     
     - GET:    /articles/                  - Gets all articles
     - GET:    /articles/:id               - Gets article by ID
