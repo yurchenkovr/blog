@@ -1,11 +1,11 @@
 #BLOG
 The following dependencies are used in this project:
 
-- echo - HTTP 'framework'
-- go-pg -  PostgreSQL ORM
+- echo   - HTTP 'framework'
+- go-pg  - PostgreSQL ORM
 - jwt-go - JWT Authentication
-- bcrypt -  Password hashing
-- Yaml - Unmarshalling YAML config file
+- bcrypt - Password hashing
+- Yaml   - Unmarshalling YAML config file
 
 The application runs as an HTTP server at port 8080. It provides the following RESTful endpoints:
 
@@ -24,4 +24,4 @@ The application runs as an HTTP server at port 8080. It provides the following R
     - GET:    /articles/name/:username    - Gets article by username(author)
     - POST:   /articles/                  - creates articles new article(after sign in)
     - DELETE: /articles/:id               - deletes an article(after sign in)
-    
+    - PATCH:  /articles/:id               - updates an article(after sign in)

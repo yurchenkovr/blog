@@ -1,0 +1,23 @@
+# Docker Compose file Reference (https://docs.docker.com/compose/compose-file/)
+
+version: '3'
+
+# Define services
+services:
+
+  # App Service
+  app:
+    build:
+      context: ./
+      dockerfile: src/cmd/api/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    entrypoint: ./src/cmd/api/entrypoint.sh
+    command: ./src/cmd/api/api
+
+  # Postgres Service
+  postgres:
+    image: "postgres:10-alpine"
+    restart: unless-stopped

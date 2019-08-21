@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-
 	cfgPath := flag.String("p", "./src/cmd/api/config.local.yaml", "Path to config file")
 	flag.Parse()
 
@@ -18,6 +17,5 @@ func main() {
 	}
 
 	e := transport.New(cfg)
-
 	e.Logger.Fatal(e.Start(cfg.Server.Port))
 }
