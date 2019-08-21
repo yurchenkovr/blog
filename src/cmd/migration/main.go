@@ -40,8 +40,14 @@ func CreateTables(db *pg.DB) {
 }
 
 func InsertData(db *pg.DB) {
-	dbInsert := `INSERT INTO public.roles VALUES (200,200,'ADMIN');
-				INSERT INTO public.roles VALUES (100,100,'USER');`
+	dbInsert := `INSERT INTO public.roles (id, access_level, name) 
+					SELECT 200,200,'ADMIN' 
+				 WHERE NOT EXISTS (
+					SELECT id FROM public.roles WHERE id = 200);
+				 INSERT INTO public.roles (id, access_level, name) 
+					SELECT 100,100,'USER'
+				 WHERE NOT EXISTS (
+					SELECT id FROM public.roles WHERE id = 100);`
 	queries := strings.Split(dbInsert, ";")
 
 	for _, v := range queries[0 : len(queries)-1] {
@@ -54,7 +60,9 @@ func InsertData(db *pg.DB) {
 	sec := secure.HashAndSalt([]byte("admin"))
 
 	adminInsert := `INSERT INTO public.users (id, username, password, created_at, role_id, blocked)
-		VALUES (1, 'admin', '%s', now(), 200, false);`
+				 		SELECT 1, 'admin', '%s', now(), 200, false 
+					WHERE NOT EXISTS (
+						SELECT id FROM public.users WHERE username = 'admin');`
 	_, err := db.Exec(fmt.Sprintf(adminInsert, sec))
 	if err != nil {
 		log.Printf("error while InsertAdmin\nReason: %v\n", err)
