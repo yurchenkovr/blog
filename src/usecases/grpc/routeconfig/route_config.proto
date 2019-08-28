@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package routeconfig;
+
+service RouteConfig {
+    rpc GetServerConfig (RequestName) returns (ServerConfig) {
+    }
+}
+
+message RequestName {
+}
+
+message ServerConfig {
+    bytes config = 1;
+}
