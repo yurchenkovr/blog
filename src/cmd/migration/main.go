@@ -5,6 +5,7 @@ import (
 	"blog/src/infrastructure/secure"
 	"blog/src/models"
 	"blog/src/repository/postgres"
+	gC "blog/src/usecases/grpc/client"
 	"flag"
 	"fmt"
 	"github.com/go-pg/pg"
@@ -14,15 +15,16 @@ import (
 )
 
 func main() {
-	cfgPath := flag.String("p", "./src/cmd/api/config.local.yaml", "Path to config file")
+	grpcPath := flag.String("p", "./src/cmd/cmdmanager/grpcConfig.yaml", "Path to gRPC config file")
 	flag.Parse()
 
-	cfg, err := config.Load(*cfgPath)
+	cfg, err := config.Load(*grpcPath)
 	if err != nil {
 		log.Printf("Error while Loading config file\nReason: %v\n", err)
 	}
+	config := gC.Configs(cfg.Grpc.Port)
 
-	db := postgres.New(cfg.DB.User, cfg.DB.Password, cfg.DB.Database, cfg.DB.Addr)
+	db := postgres.New(config.APIms)
 
 	CreateTables(db)
 	InsertData(db)

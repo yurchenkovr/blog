@@ -3,19 +3,22 @@ package main
 import (
 	"blog/src/infrastructure/config"
 	"blog/src/infrastructure/transport"
+	gC "blog/src/usecases/grpc/client"
 	"flag"
-	"github.com/labstack/gommon/log"
+	"log"
 )
 
 func main() {
-	cfgPath := flag.String("p", "./src/cmd/api/config.local.yaml", "Path to config file")
+	grpcPath := flag.String("p", "./src/cmd/cmdmanager/grpcConfig.yaml", "Path to gRPC config file")
 	flag.Parse()
 
-	cfg, err := config.Load(*cfgPath)
+	cfg, err := config.Load(*grpcPath)
 	if err != nil {
 		log.Printf("Error while Loading config file\nReason: %v\n", err)
 	}
 
-	e := transport.New(cfg)
-	e.Logger.Fatal(e.Start(cfg.Server.Port))
+	config := gC.Configs(cfg.Grpc.Port)
+
+	e := transport.New(config.APIms)
+	e.Logger.Fatal(e.Start(config.APIms.Server.Port))
 }

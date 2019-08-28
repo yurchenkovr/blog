@@ -1,4 +1,5 @@
-#config file
+#config files
 src/cmd/api/*.yaml
+src/cmd/cmdmanager/*.yaml
 /.idea
 package/api/api

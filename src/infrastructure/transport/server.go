@@ -9,12 +9,12 @@ import (
 	"github.com/labstack/echo"
 )
 
-func New(cfg *config.Configuration) *echo.Echo {
+func New(cfg *config.APIms) *echo.Echo {
 	e := echo.New()
 
-	dbHandler := postgres.New(cfg.DB.User, cfg.DB.Password, cfg.DB.Database, cfg.DB.Addr)
+	dbHandler := postgres.New(cfg)
 
-	jwtService := jwt.New(cfg.JWT.Secret, cfg.JWT.SigningAlgorithm, cfg.JWT.Duration)
+	jwtService := jwt.New(cfg)
 
 	rbac := rbac.Service{}
 

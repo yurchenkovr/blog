@@ -1,11 +1,13 @@
 package jwt
 
 import (
+	"blog/src/infrastructure/config"
 	"blog/src/models"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -15,15 +17,21 @@ type Service struct {
 	algo           jwt.SigningMethod
 }
 
-func New(secret, algo string, d int) *Service {
-	signingMethod := jwt.GetSigningMethod(algo)
+func New(cfg *config.APIms) *Service {
+	signingMethod := jwt.GetSigningMethod(cfg.JWT.SigningAlgorithm)
 	if signingMethod == nil {
 		panic("invalid jwt signing method")
 	}
+
+	duration, err := strconv.Atoi(cfg.JWT.Duration)
+	if err != nil {
+		log.Printf("Error when parsing duration: %v", err)
+		return nil
+	}
 	return &Service{
-		key:            []byte(secret),
+		key:            []byte(cfg.JWT.Secret),
 		algo:           signingMethod,
-		expirationTime: time.Duration(d) * time.Minute,
+		expirationTime: time.Duration(duration) * time.Minute,
 	}
 }
 

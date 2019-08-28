@@ -19,14 +19,13 @@ func Load(path string) (*Configuration, error) {
 	return cfg, nil
 }
 
-// Configuration holds data necessery for configuring application
+// Configuration holds data necessary for configuring application
 type Configuration struct {
-	Server *Server   `yaml:"server,omitempty"`
-	DB     *Database `yaml:"database,omitempty"`
-	JWT    *JWT      `yaml:"jwt,omitempty"`
+	APIms *APIms `yaml:"apims,omitempty"`
+	Grpc  *Grpc  `yaml:"grpc,omitempty"`
 }
 
-// Database holds data necessery for database configuration
+// Database holds data necessary for database configuration
 type Database struct {
 	User     string `yaml:"user,omitempty"`
 	Password string `yaml:"password,omitempty"`
@@ -34,14 +33,25 @@ type Database struct {
 	Addr     string `yaml:"addr,omitempty"`
 }
 
-// Server holds data necessery for server configuration
+// Server holds data necessary for server configuration
 type Server struct {
 	Port string `yaml:"port,omitempty"`
 }
 
-// JWT holds data necessery for JWT configuration
+// JWT holds data necessary for JWT configuration
 type JWT struct {
 	Secret           string `yaml:"secret,omitempty"`
-	Duration         int    `yaml:"duration_minutes,omitempty"`
+	Duration         string `yaml:"duration_minutes,omitempty"`
 	SigningAlgorithm string `yaml:"signing_algorithm,omitempty"`
+}
+
+type APIms struct {
+	DB     *Database `yaml:"database,omitempty"`
+	JWT    *JWT      `yaml:"jwt,omitempty"`
+	Server *Server   `yaml:"server,omitempty"`
+}
+
+// Grpc holds data necessary for gRPC configuration
+type Grpc struct {
+	Port string `yaml:"port,omitempty"`
 }
