@@ -13,6 +13,7 @@ services:
     ports:
       - "8080:8080"
     depends_on:
+      - grpc
       - postgres
     entrypoint: ./src/cmd/api/entrypoint.sh
     command: ./src/cmd/api/api
@@ -21,3 +22,14 @@ services:
   postgres:
     image: "postgres:10-alpine"
     restart: unless-stopped
+
+  #gRPC Service
+  grpc:
+    build:
+      context: ./
+      dockerfile: src/cmd/cmdmanager/Dockerfile
+    ports:
+      - "50051:50051"
+    command: ./src/cmd/cmdmanager/cmdmanager
+    restart: unless-stopped
+

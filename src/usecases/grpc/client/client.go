@@ -9,8 +9,8 @@ import (
 	"log"
 )
 
-func StartClient(address string) *pb.RouteConfigClient {
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
+func StartClient(host, port string) *pb.RouteConfigClient {
+	conn, err := grpc.Dial(host+port, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("failed to dial: %v ", err)
 	}
@@ -20,8 +20,8 @@ func StartClient(address string) *pb.RouteConfigClient {
 	return &c
 }
 
-func LoadConfigs(port string) *config.Configuration {
-	c := *StartClient(port)
+func LoadConfigs(host, port string) *config.Configuration {
+	c := *StartClient(host, port)
 
 	r, err := c.GetServerConfig(context.Background(), &pb.RequestName{})
 	if err != nil {
@@ -37,8 +37,8 @@ func LoadConfigs(port string) *config.Configuration {
 	return &config
 }
 
-func Configs(port string) *config.Configuration {
-	c := LoadConfigs(port)
+func Configs(host, port string) *config.Configuration {
+	c := LoadConfigs(host, port)
 
 	return c
 }

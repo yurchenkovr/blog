@@ -10,6 +10,6 @@ WORKDIR /go/src/blog/
 
 COPY ./package/api ./src/cmd/api
 COPY ./src/cmd/api/entrypoint.sh ./src/cmd/api
-COPY ./src/cmd/api/config.local.yaml ./src/cmd/api
+COPY ./src/cmd/cmdmanager/grpcConfig.yaml ./src/cmd/api
 
 EXPOSE 8080

@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	grpcPath := flag.String("p", "./src/cmd/cmdmanager/grpcConfig.yaml", "Path to gRPC config file")
+	grpcPath := flag.String("p", "./src/cmd/api/grpcConfig.yaml", "Path to gRPC config file")
 	flag.Parse()
 
 	cfg, err := config.Load(*grpcPath)
@@ -17,7 +17,7 @@ func main() {
 		log.Printf("Error while Loading config file\nReason: %v\n", err)
 	}
 
-	config := gC.Configs(cfg.Grpc.Port)
+	config := gC.Configs(cfg.Grpc.Host, cfg.Grpc.Port)
 
 	e := transport.New(config.APIms)
 	e.Logger.Fatal(e.Start(config.APIms.Server.Port))

@@ -54,4 +54,5 @@ type APIms struct {
 // Grpc holds data necessary for gRPC configuration
 type Grpc struct {
 	Port string `yaml:"port,omitempty"`
+	Host string `yaml:"host,omitempty"`
 }
