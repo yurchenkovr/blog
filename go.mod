@@ -9,6 +9,8 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0
+	github.com/nats-io/nats-server/v2 v2.0.4 // indirect
+	github.com/nats-io/nats.go v1.8.1
 	github.com/onsi/ginkgo v1.9.0 // indirect
 	github.com/onsi/gomega v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
