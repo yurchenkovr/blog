@@ -11,15 +11,15 @@ import (
 	"log"
 )
 
-func New(cfg *config.APIms) *echo.Echo {
+func New(cfgApi *config.APIms, cfgNats *config.NATSms) *echo.Echo {
 	e := echo.New()
 
-	dbHandler := postgres.New(cfg)
+	dbHandler := postgres.New(cfgApi)
 
-	jwtService := jwt.New(cfg)
+	jwtService := jwt.New(cfgApi)
 
 	rbac := rbac.Service{}
-	nc, err := nats.Connect(cfg.Nats.Url)
+	nc, err := nats.Connect(cfgNats.NS.Url)
 	if err != nil {
 		log.Fatalf("error when connect to nats")
 	}

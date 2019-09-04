@@ -14,18 +14,18 @@ import (
 	"time"
 )
 
-func StartServer(db *pg.DB, cfg *config.APIms) {
+func StartServer(db *pg.DB, cfg *config.NATSms) {
 	artRep := postgres.NewArticleRepository(db)
 
 	opts := []nats.Option{nats.Name("Logger Sub Service")}
 	opts = setupConnOptions(opts)
 
-	nc, err := nats.Connect(cfg.Nats.Url, opts...)
+	nc, err := nats.Connect(cfg.NS.Url, opts...)
 	if err != nil {
 		log.Fatalf("Error.Conn PUB: %v", err)
 	}
 
-	if _, err := nc.Subscribe(cfg.Nats.Subj, func(msg *nats.Msg) {
+	if _, err := nc.Subscribe(cfg.NS.Subj, func(msg *nats.Msg) {
 		var l m.Logger
 
 		if err := json.Unmarshal(msg.Data, &l); err != nil {
@@ -62,7 +62,7 @@ func StartServer(db *pg.DB, cfg *config.APIms) {
 }
 
 func writeFileArt(loggs string) {
-	file, err := os.OpenFile("log.txt", os.O_WRONLY|os.O_APPEND, 0644)
+	file, err := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("failed opening file: %s", err)
 	}

@@ -11,7 +11,7 @@ import (
 //  local: ./src/cmd/api/config.local.yaml
 func main() {
 	grpcPath := flag.String("p", "./src/cmd/cmdmanager/grpcConfig.yaml", "Path to gRPC config file")
-	cfgPath := flag.String("cfgPath", "./src/cmd/api/config.local.yaml", "Path to config file")
+	cfgPath := flag.String("cfgPath", "./src/cmd/cmdmanager/config.local.yaml", "Path to config file")
 	flag.Parse()
 
 	gcfg, err := config.Load(*grpcPath)

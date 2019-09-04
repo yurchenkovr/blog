@@ -21,8 +21,9 @@ func Load(path string) (*Configuration, error) {
 
 // Configuration holds data necessary for configuring application
 type Configuration struct {
-	APIms *APIms `yaml:"apims,omitempty"`
-	Grpc  *Grpc  `yaml:"grpc,omitempty"`
+	APIms  *APIms  `yaml:"api_ms,omitempty"`
+	Grpc   *Grpc   `yaml:"grpc,omitempty"`
+	NATSms *NATSms `yaml:"nats_ms,omitempty"`
 }
 
 // Database holds data necessary for database configuration
@@ -49,7 +50,6 @@ type APIms struct {
 	DB     *Database `yaml:"database,omitempty"`
 	JWT    *JWT      `yaml:"jwt,omitempty"`
 	Server *Server   `yaml:"server,omitempty"`
-	Nats   *Nats     `yaml:"nats,omitempty"`
 }
 
 // Grpc holds data necessary for gRPC configuration
@@ -58,9 +58,12 @@ type Grpc struct {
 	Host string `yaml:"host,omitempty"`
 }
 
-// Nats holds data necessary for gRPC configuration
-type Nats struct {
-	Url   string `yaml:"url,omitempty"`
-	Subj  string `yaml:"subj,omitempty"`
-	SubjU string `yaml:"subju,omitempty"`
+type NATSms struct {
+	NS *NatsSub `yaml:"nats_subscriber,omitempty"`
+}
+
+// NatsSub holds data necessary for Subscribe configuration
+type NatsSub struct {
+	Url  string `yaml:"url,omitempty"`
+	Subj string `yaml:"subj,omitempty"`
 }

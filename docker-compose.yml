@@ -12,8 +12,10 @@ services:
       dockerfile: src/cmd/api/Dockerfile
     ports:
       - "8080:8080"
+    environment:
+      - "NATS_URI=nats://nats:4222"
     depends_on:
-      - grpc
+      - config_manager
       - postgres
       - nats-server
     entrypoint: ./src/cmd/api/entrypoint.sh
@@ -24,8 +26,8 @@ services:
     image: "postgres:10-alpine"
     restart: unless-stopped
 
-  #gRPC Service
-  grpc:
+  #gRPC config manager Service
+  config_manager:
     build:
       context: ./
       dockerfile: src/cmd/cmdmanager/Dockerfile
@@ -34,17 +36,26 @@ services:
     command: ./src/cmd/cmdmanager/cmdmanager
     restart: unless-stopped
 
-  #Nats Service
-  nats:
+  #Nats event_subscriver Service
+  events_subscriber:
     build:
       context: ./
       dockerfile: src/cmd/nats/Dockerfile
     ports:
       - "8000:8000"
+    depends_on:
+      - config_manager
+      - postgres
+      - nats-server
+      - app
     command: ./src/cmd/nats/nats
     restart: unless-stopped
 
   #Nats Server
   nats-server:
     image: 'nats:2.0.4'
+    expose:
+      - "4222"
+    ports:
+      - "8222:8222"
     hostname: nats-server
