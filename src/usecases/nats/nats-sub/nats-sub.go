@@ -1,60 +1,85 @@
-package main
+package nats_sub
 
 import (
+	"blog/src/infrastructure/config"
+	m "blog/src/models"
+	"blog/src/repository/postgres"
 	"encoding/json"
+	"fmt"
+	"github.com/go-pg/pg"
 	"github.com/nats-io/nats.go"
 	"log"
+	"os"
 	"runtime"
 	"time"
 )
 
-type Logger struct {
-	ID int
-}
+func StartServer(db *pg.DB, cfg *config.APIms) {
+	artRep := postgres.NewArticleRepository(db)
 
-func main() {
-
-	//Connect options
-	opts := []nats.Option{nats.Name("Logger SUB service")}
+	opts := []nats.Option{nats.Name("Logger Sub Service")}
 	opts = setupConnOptions(opts)
 
-	//Connect to Nats
-	nc, err := nats.Connect(nats.DefaultURL, opts...)
+	nc, err := nats.Connect(cfg.Nats.Url, opts...)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error.Conn PUB: %v", err)
 	}
-	//	defer nc.Close()
 
-	subj, i := "updates", 0
+	if _, err := nc.Subscribe(cfg.Nats.Subj, func(msg *nats.Msg) {
+		var l m.Logger
 
-	if _, err := nc.Subscribe(subj, func(msg *nats.Msg) {
-		i += 1
-		var m Logger
-
-		if err := json.Unmarshal(msg.Data, &m); err != nil {
+		if err := json.Unmarshal(msg.Data, &l); err != nil {
 			log.Fatalf("Error.Unmarshal.SUB: %v", err)
 		}
 
-		printMsg(i, msg, &m)
+		var loggs string
+
+		if l.Method == "DELETE" {
+			loggs = fmt.Sprintf("[%s] on [%s]: \n\tID:'%d'\n", l.Method, msg.Subject, l.ID)
+		} else {
+			article, err := GetArticle(artRep, l.ID)
+			if err != nil {
+				log.Fatalf("Error.SUB.DB: %v", err)
+			}
+
+			loggs = fmt.Sprintf("[%s] on [%s]: \n\tID:'%d'\n\tTitle: '%s'\n\tAuthor: '%s'\n", l.Method, msg.Subject, article.ID, article.Title, article.Username)
+		}
+
+		writeFileArt(loggs)
+
 	}); err != nil {
 		log.Fatal(err)
 	}
-
 	if err := nc.Flush(); err != nil {
-		log.Fatalf("Error.Flush: %v", err)
+		log.Fatalf("Error.SUB.Flush: %v", err)
 	}
 
 	if err := nc.LastError(); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("Listening on [%s]", subj)
-
 	runtime.Goexit()
 }
 
-func printMsg(i int, n *nats.Msg, m *Logger) {
-	log.Printf("[#%d] Received on [%s]: '%d'\n", i, n.Subject, m.ID)
+func writeFileArt(loggs string) {
+	file, err := os.OpenFile("log.txt", os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Fatalf("failed opening file: %s", err)
+	}
+	defer file.Close()
+
+	if _, err := file.WriteString(loggs); err != nil {
+		log.Fatalf("Error.SUB.WriteString: %v", err)
+	}
+}
+
+func GetArticle(db postgres.ArticleRepository, id int) (m.Article, error) {
+	article, err := db.View(id)
+	if err != nil {
+		return m.Article{}, err
+	}
+
+	return article, nil
 }
 
 func setupConnOptions(opts []nats.Option) []nats.Option {

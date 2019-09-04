@@ -1,4 +1,3 @@
-
 FROM golang:1.12-alpine
 
 LABEL maintainer="Vitalii Yurchenko <vitalik.yurchenko2000@gmail.com>"

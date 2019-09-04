@@ -7,9 +7,12 @@ import (
 	"blog/src/usecases/rbac"
 	"errors"
 	"github.com/labstack/echo"
+	"github.com/nats-io/nats.go"
 	"log"
 	"time"
 )
+
+const subjU = "user"
 
 type UserService interface {
 	Create(CreateReqUser) error
@@ -20,7 +23,7 @@ type UserService interface {
 	GetByUsername(string) (*models.User, error)
 	Block(echo.Context, int) error
 	Unblock(echo.Context, int) error
-	Login(username, password string) (string, error)
+	Login(string, string) (string, error)
 }
 
 type TokenGenerator interface {
@@ -31,10 +34,11 @@ type userService struct {
 	userRep        postgres.UserRepository
 	tokenGenerator TokenGenerator
 	rbac           rbac.RBAC
+	nats           *nats.Conn
 }
 
-func NewUserService(userRep postgres.UserRepository, generator TokenGenerator, rbac rbac.RBAC) UserService {
-	return &userService{userRep: userRep, tokenGenerator: generator, rbac: rbac}
+func NewUserService(userRep postgres.UserRepository, generator TokenGenerator, rbac rbac.RBAC, nats *nats.Conn) UserService {
+	return &userService{userRep: userRep, tokenGenerator: generator, rbac: rbac, nats: nats}
 }
 
 type CreateReqUser struct {
@@ -69,10 +73,13 @@ func (s userService) Create(req CreateReqUser) error {
 		RoleID:   req.RoleID,
 		Blocked:  false,
 	}
-	if err := s.userRep.Create(user); err != nil {
+
+	err := s.userRep.Create(user)
+	if err != nil {
 		log.Printf("error SU, Reason: %v\n", err)
 		return err
 	}
+
 	return nil
 }
 
@@ -130,12 +137,14 @@ func (s userService) View(id int) (*models.User, error) {
 
 	return user, nil
 }
+
 func (s userService) GetByUsername(username string) (*models.User, error) {
 	user, err := s.userRep.GetByUsername(username)
 	if err != nil {
 		log.Printf("error GBU, Reason: %v\n", err)
 		return user, err
 	}
+
 	return user, nil
 }
 

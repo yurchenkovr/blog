@@ -22,7 +22,7 @@ func main() {
 	if err != nil {
 		log.Printf("Error while Loading config file\nReason: %v\n", err)
 	}
-	config := gC.Configs(cfg.Grpc.Port)
+	config := gC.Configs(cfg.Grpc.Host, cfg.Grpc.Port)
 
 	db := postgres.New(config.APIms)
 

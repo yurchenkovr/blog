@@ -7,7 +7,7 @@ import (
 )
 
 type ArticleRepository interface {
-	Create(models.Article) error
+	Create(models.Article) (models.Article, error)
 	View(int) (models.Article, error)
 	Delete(int) error
 	List() ([]models.Article, error)
@@ -43,12 +43,12 @@ func (a *articleRepository) Update(id int, art models.Article) error {
 	return nil
 }
 
-func (a *articleRepository) Create(article models.Article) error {
+func (a *articleRepository) Create(article models.Article) (models.Article, error) {
 	if err := a.db.Insert(&article); err != nil {
 		log.Printf("Error while inserting new item into DB, Reason: %v\n", err)
-		return err
+		return models.Article{}, err
 	}
-	return nil
+	return article, nil
 }
 
 func (a *articleRepository) View(id int) (models.Article, error) {

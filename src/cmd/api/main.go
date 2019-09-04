@@ -8,8 +8,10 @@ import (
 	"log"
 )
 
+// docker:  ./src/cmd/api/grpcConfig.yaml
+// local:  ./src/cmd/cmdmanager/grpcConfig.yaml
 func main() {
-	grpcPath := flag.String("p", "./src/cmd/api/grpcConfig.yaml", "Path to gRPC config file")
+	grpcPath := flag.String("p", "./src/cmd/cmdmanager/grpcConfig.yaml", "Path to gRPC config file")
 	flag.Parse()
 
 	cfg, err := config.Load(*grpcPath)

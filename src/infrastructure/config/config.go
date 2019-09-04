@@ -49,10 +49,18 @@ type APIms struct {
 	DB     *Database `yaml:"database,omitempty"`
 	JWT    *JWT      `yaml:"jwt,omitempty"`
 	Server *Server   `yaml:"server,omitempty"`
+	Nats   *Nats     `yaml:"nats,omitempty"`
 }
 
 // Grpc holds data necessary for gRPC configuration
 type Grpc struct {
 	Port string `yaml:"port,omitempty"`
 	Host string `yaml:"host,omitempty"`
+}
+
+// Nats holds data necessary for gRPC configuration
+type Nats struct {
+	Url   string `yaml:"url,omitempty"`
+	Subj  string `yaml:"subj,omitempty"`
+	SubjU string `yaml:"subju,omitempty"`
 }

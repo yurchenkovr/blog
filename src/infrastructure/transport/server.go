@@ -7,6 +7,8 @@ import (
 	"blog/src/usecases"
 	"blog/src/usecases/rbac"
 	"github.com/labstack/echo"
+	"github.com/nats-io/nats.go"
+	"log"
 )
 
 func New(cfg *config.APIms) *echo.Echo {
@@ -17,9 +19,13 @@ func New(cfg *config.APIms) *echo.Echo {
 	jwtService := jwt.New(cfg)
 
 	rbac := rbac.Service{}
+	nc, err := nats.Connect(cfg.Nats.Url)
+	if err != nil {
+		log.Fatalf("error when connect to nats")
+	}
 
-	NewService(*e, usecases.NewArtService(postgres.NewArticleRepository(dbHandler), &rbac), jwtService.MWFunc())
-	NewUserService(*e, usecases.NewUserService(postgres.NewUserRepository(dbHandler), jwtService, &rbac), jwtService.MWFunc())
+	NewService(*e, usecases.NewArtService(postgres.NewArticleRepository(dbHandler), &rbac, nc), jwtService.MWFunc())
+	NewUserService(*e, usecases.NewUserService(postgres.NewUserRepository(dbHandler), jwtService, &rbac, nc), jwtService.MWFunc())
 
 	return e
 }

@@ -46,13 +46,13 @@ func (s serviceArt) Create(c echo.Context) error {
 	b, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		log.Printf("Fail reading the request body: %s", err)
-		return c.String(http.StatusInternalServerError, "")
+		return c.JSON(http.StatusInternalServerError, "")
 	}
 
 	err = json.Unmarshal(b, &article)
 	if err != nil {
 		log.Printf("Fail unmarshaling in addArticle: %s", err)
-		return c.String(http.StatusInternalServerError, "")
+		return c.JSON(http.StatusInternalServerError, "")
 	}
 
 	req := usecases.CreateReqArt{
@@ -67,7 +67,7 @@ func (s serviceArt) Create(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	return c.String(http.StatusOK, "We got your article")
+	return c.JSON(http.StatusOK, "We got your article")
 }
 
 func (s *serviceArt) Update(c echo.Context) error {
@@ -96,6 +96,7 @@ func (s *serviceArt) Update(c echo.Context) error {
 
 	err = s.svc.Update(c, id, req)
 	if err != nil {
+		log.Printf("Error.Transport.Update: %v", err)
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
