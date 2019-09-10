@@ -6,6 +6,9 @@ The following dependencies are used in this project:
 - jwt-go - JWT Authentication
 - bcrypt - Password hashing
 - Yaml   - Unmarshalling YAML config file
+- gRPC   - Config-manager
+- NATS   - Logs to a file CRUD events
+- Gorilla WebSocket - chat example
 
 The application runs as an HTTP server at port 8080. It provides the following RESTful endpoints:
 
@@ -25,3 +28,6 @@ The application runs as an HTTP server at port 8080. It provides the following R
     - POST:   /articles/                  - creates articles new article(after sign in)
     - DELETE: /articles/:id               - deletes an article(after sign in)
     - PATCH:  /articles/:id               - updates an article(after sign in)
+
+You can run project in Docker Compose: 
+ * run "docker-compose up --build" using terminal
