@@ -2,20 +2,20 @@ package client
 
 import (
 	"blog/src/infrastructure/config"
-	pb "blog/src/usecases/grpc/routeconfig"
+	"blog/src/repository/grpc/routeconfig"
 	"context"
 	"encoding/json"
 	"google.golang.org/grpc"
 	"log"
 )
 
-func StartClient(host, port string) *pb.RouteConfigClient {
+func StartClient(host, port string) *routeconfig.RouteConfigClient {
 	conn, err := grpc.Dial(host+port, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("failed to dial: %v ", err)
 	}
 
-	c := pb.NewRouteConfigClient(conn)
+	c := routeconfig.NewRouteConfigClient(conn)
 
 	return &c
 }
@@ -23,7 +23,7 @@ func StartClient(host, port string) *pb.RouteConfigClient {
 func LoadConfigs(host, port string) *config.Configuration {
 	c := *StartClient(host, port)
 
-	r, err := c.GetServerConfig(context.Background(), &pb.RequestName{})
+	r, err := c.GetServerConfig(context.Background(), &routeconfig.RequestName{})
 	if err != nil {
 		log.Fatalf("failed to getResponse: %v", err)
 	}

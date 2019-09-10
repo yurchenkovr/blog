@@ -2,9 +2,9 @@ package main
 
 import (
 	"blog/src/infrastructure/config"
+	gC "blog/src/repository/grpc/client"
+	sub "blog/src/repository/nats/nats-sub"
 	"blog/src/repository/postgres"
-	gC "blog/src/usecases/grpc/client"
-	sub "blog/src/usecases/nats/nats-sub"
 	"flag"
 	"log"
 )

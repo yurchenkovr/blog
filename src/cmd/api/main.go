@@ -3,7 +3,7 @@ package main
 import (
 	"blog/src/infrastructure/config"
 	"blog/src/infrastructure/transport"
-	gC "blog/src/usecases/grpc/client"
+	gC "blog/src/repository/grpc/client"
 	"flag"
 	"log"
 )

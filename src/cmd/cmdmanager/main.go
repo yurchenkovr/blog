@@ -2,7 +2,7 @@ package main
 
 import (
 	"blog/src/infrastructure/config"
-	gS "blog/src/usecases/grpc/server"
+	gS "blog/src/repository/grpc/server"
 	"flag"
 	"log"
 )
