@@ -3,7 +3,6 @@ package chat
 import (
 	"blog/src/usecases"
 	"bytes"
-	"encoding/json"
 	"github.com/labstack/echo"
 	"log"
 	"net/http"
@@ -81,17 +80,10 @@ func (c *Client) ReadPump(ctx echo.Context) {
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 
-		var msg string
-
-		err = json.Unmarshal(message, msg)
-		if err != nil {
-			log.Printf("Error: %v", err)
-			break
-		}
-
 		reqChat := usecases.CreateReqChat{
-			Username: ctx.Get("username").(string),
-			Message:  msg,
+			Username: "username",
+			//Username: ctx.Get("username").(string),
+			Message: string(message),
 		}
 
 		err = c.rds.Create(ctx, reqChat)

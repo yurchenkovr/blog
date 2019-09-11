@@ -3,8 +3,6 @@ package transport
 import (
 	"blog/src/repository/chat"
 	"blog/src/usecases"
-	"fmt"
-	"github.com/gorilla/websocket"
 	"github.com/labstack/echo"
 	"log"
 	"net/http"
@@ -16,7 +14,7 @@ type serviceChat struct {
 }
 
 func NewChatService(e echo.Echo, chatService usecases.ChatService, middlewareFunc echo.MiddlewareFunc, hub *chat.Hub) {
-	chatHTTP := &serviceChat{hub: hub}
+	chatHTTP := &serviceChat{hub: hub, svc: chatService}
 
 	chat := e.Group("/chat")
 
@@ -38,15 +36,7 @@ func (s serviceChat) serveWs(c echo.Context) error {
 		log.Println(err)
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	err = conn.WriteMessage(websocket.TextMessage, []byte("Hello Upgraded!"))
-	if err != nil {
-		log.Println("Error: 1")
-	}
-	_, msg, err := conn.ReadMessage()
-	if err != nil {
-		log.Println("Error: 2")
-	}
-	fmt.Printf(":: %v", msg)
+
 	client := chat.NewClient(s.hub, conn, make(chan []byte, 256), s.svc)
 	client.Hub.Register <- client
 

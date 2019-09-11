@@ -4,7 +4,6 @@ import (
 	"blog/src/models"
 	"blog/src/repository/redis"
 	"blog/src/usecases/rbac"
-	"errors"
 	"github.com/labstack/echo"
 	"log"
 	"time"
@@ -38,7 +37,7 @@ func (c chatService) Create(ctx echo.Context, req CreateReqChat) error {
 	chatMsg := models.Chat{
 		Username: req.Username,
 		Message:  req.Message,
-		CratedAt: time.Time{},
+		CratedAt: time.Now(),
 	}
 
 	if err := c.chatRep.Create(chatMsg); err != nil {
