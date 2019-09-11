@@ -142,21 +142,3 @@ func (c *Client) WritePump() {
 		}
 	}
 }
-
-/*
-// serveWs handles websocket requests from the peer.
-func serveWs(Hub *Hub, w http.ResponseWriter, r *http.Request) {
-	Conn, err := Upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	client := NewClient(Hub, Conn, make(chan []byte, 256))
-	client.Hub.Register <- client
-
-	// Allow collection of memory referenced by the caller by doing all work in
-	// new goroutines.
-	go client.WritePump()
-	go client.ReadPump()
-}
-*/
